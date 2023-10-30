@@ -6,8 +6,11 @@ name = "pypi"
 [packages]
 numpy = "*"
 pandas = "*"
+ipykernel = "*"
+tensorflow = "*"
 
 [dev-packages]
+ipykernel = "*"
 
 [requires]
 python_version = "3.11"
