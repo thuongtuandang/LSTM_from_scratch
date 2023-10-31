@@ -3,24 +3,20 @@ from dataset import Dataset
 from models.model import BaseModel
 from utils import hadamard, sigmoid, softmax
 
-
 class LSTM(BaseModel):
-
-    def __init__(self, input_size, output_size, hidden_size = 64) -> None:
-        super().__init__()
+    def __init__(self, input_size, output_size, hidden_size = 64):
         # Initialize W
         self.Wf = np.random.rand(hidden_size, input_size)/1000
         self.Wi = np.random.rand(hidden_size, input_size)/1000
         self.Wc = np.random.rand(hidden_size, input_size)/1000
         self.Wo = np.random.rand(hidden_size, input_size)/1000
+        self.Wy = np.random.rand(output_size, hidden_size)/1000
         # Initialize U
         self.Uf = np.random.rand(hidden_size, hidden_size)/1000
         self.Ui = np.random.rand(hidden_size, hidden_size)/1000
         self.Uc = np.random.rand(hidden_size, hidden_size)/1000
         self.Uo = np.random.rand(hidden_size, hidden_size)/1000
-        # Initialize output
-        self.Wy = np.random.rand(output_size, hidden_size)/1000
-        # Initialize U
+        # Initialize b
         self.by = np.zeros((output_size,1))
         self.bf = np.zeros((hidden_size,1))
         self.bi = np.zeros((hidden_size,1))
@@ -28,6 +24,7 @@ class LSTM(BaseModel):
         self.bo = np.zeros((hidden_size,1))
     
     def _forward(self, inputs):
+        self.inputs = []
         # Initialize arrays h and c
         self.hs = []
         self.cs = []
@@ -45,17 +42,18 @@ class LSTM(BaseModel):
 
         # Now compute
         for t, x in enumerate(inputs):
+            x = np.array(x)
             x = x.reshape(-1,1)
+            self.inputs.append(x)
             f = sigmoid(self.Uf @ self.hs[t] + self.Wf @ x + self.bf)
-            c_tilde = sigmoid(self.Uc @ self.hs[t] + self.Wc @ x + self.bc)
+            c_tilde = np.tanh(self.Uc @ self.hs[t] + self.Wc @ x + self.bc)
             i = sigmoid(self.Ui @ self.hs[t] + self.Wi @ x + self.bi)
             o = sigmoid(self.Uo @ self.hs[t] + self.Wo @ x + self.bo)
-            # Compute the memory state
-            
+            # Compute the memory cell
             c = hadamard(c_tilde, i) + hadamard(self.cs[t], f)
             # Compute the hidden state
             h = hadamard(o, np.tanh(c))
-            # Append values for memory state and hidden state
+            # Append values for memory cell and hidden state
             self.hs.append(h)
             self.cs.append(c)
             # Append values for gates
@@ -66,10 +64,11 @@ class LSTM(BaseModel):
         
         n = len(inputs)
         y_pred = self.Wy @ self.hs[n] + self.by
-        return softmax(y_pred)
-
-    def _backward(self, inputs, dy, learning_rate):
-        n = len(inputs)
+        self.outputs = softmax(y_pred)
+        return self.outputs
+    
+    def _backward(self, dy, learning_rate = 0.03):
+        n = len(self.inputs)
         dby = dy
         dWy = dy @ self.hs[n].T
         # That is dL/dh[n]
@@ -91,7 +90,6 @@ class LSTM(BaseModel):
         dbc = np.zeros_like(self.bc)
 
         for t in reversed(range(n-1)):
-            next_input = inputs[t+1].reshape(-1,1)
             tmpf = self.fs[t+1] * (1 - self.fs[t+1])
             tmpi = self.iss[t+1] * (1 - self.iss[t+1])
             tmpo = self.os[t+1] * (1 - self.os[t+1])
@@ -104,7 +102,7 @@ class LSTM(BaseModel):
 
             dotdht_1 = self.Uo @ tmpo
             dotdUo = tmpo @ self.hs[t].T
-            dotdWo = tmpo @ next_input.T
+            dotdWo = tmpo @ self.inputs[t+1].T
             dotdbo = np.sum(tmpo, axis=1, keepdims=True)
 
             dctdct_1 = self.fs[t+1]
@@ -114,17 +112,17 @@ class LSTM(BaseModel):
 
             dftdUf = tmpf @ self.hs[t].T
             dftdht_1 = self.Uf @ tmpf
-            dftdWf = tmpf @ next_input.T
+            dftdWf = tmpf @ self.inputs[t+1].T
             dftdbf = np.sum(tmpf, axis = 1, keepdims=True)
 
             ditdUi = tmpi @ self.hs[t].T
             ditdht_1 = self.Ui @ tmpi
-            ditdWi = tmpi @ next_input.T
+            ditdWi = tmpi @ self.inputs[t+1].T
             ditdbi = np.sum(tmpi, axis = 1, keepdims=True)
 
             dc_tildedUc = tmpc_tilde @ self.hs[t].T
             dc_tildedht_1 = self.Uc @ tmpc_tilde
-            dc_tildedWc = tmpc_tilde @ next_input.T
+            dc_tildedWc = tmpc_tilde @ self.inputs[t+1].T
             dc_tildedbc = np.sum(tmpc_tilde, axis = 1, keepdims = True)
             
 
@@ -150,7 +148,8 @@ class LSTM(BaseModel):
 
             # Update dh and clip its values
             dh = temp
-            np.clip(dh, 1e-15, 1 - 1e-15, out = dh)
+            for d in [dh]:
+                np.clip(d, 1e-15, 1 - 1e-15, out = d)
         
 
         # Clip to prevent gradient vanishing/exploding
@@ -176,7 +175,7 @@ class LSTM(BaseModel):
 
         self.by -= learning_rate * dby
         self.Wy -= learning_rate * dWy
-
+    
     def _process(self, X, y, learning_rate=0.03, run_backward=False) -> float:
         accuracy = 0
         results = []
@@ -188,8 +187,9 @@ class LSTM(BaseModel):
 
             # Calculate backward
             if run_backward:
-                dy = probs - y[i].T
-                self._backward(x, dy, learning_rate)
+                dy = probs.copy()
+                dy[np.argmax(y[i])] -= 1
+                self._backward(dy, learning_rate)
 
         return results, float(accuracy/len(X))
     

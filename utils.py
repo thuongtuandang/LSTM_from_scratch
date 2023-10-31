@@ -3,7 +3,6 @@ import numpy as np
 
 def softmax(y):
     exp_y = np.exp(y-np.max(y))
-    np.clip(exp_y, 1e-15, 1 - 1e-15, out = exp_y)
     return exp_y/np.sum(exp_y, axis = 0, keepdims=True)
 
 def hadamard(A,B):
@@ -16,7 +15,6 @@ def hadamard(A,B):
 
 def sigmoid(x):
     exp_x = np.exp(-x)
-    np.clip(exp_x, 1e-15, 1 - 1e-15, out = exp_x)
     return 1/(1 + exp_x)
 
 def oneHotEncode(word, vocab_size):
