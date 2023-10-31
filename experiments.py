@@ -14,14 +14,15 @@ def _import_class(module_and_class_name: str) -> type:
     return class_
 
 def main(args):
-    dataset = Dataset(input_length=args.input_length, output_length=args.ouput_length)
+    dataset = Dataset(input_length=args.input_length, output_length=args.output_length)
     dataset.load(args.data_path)
     model_class = _import_class(f"models.{args.model}")
 
-    model: BaseModel = model_class(input_size=args.input_length, output_size=args.ouput_length)
-    model.fit(dataset.x_train)
+    model: BaseModel = model_class(input_size=dataset.vocab_size, output_size=dataset.vocab_size)
+    model.fit(dataset.x_train, dataset.y_train, learning_rate=args.learning_rate)
 
-    model.predict(dataset.x_test)
+    output, acc = model.predict(dataset.x_test, dataset.y_test)
+    print(f"Accuracy on test set: {acc}")
 
 
 if __name__ == "__main__":
@@ -68,7 +69,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
-
+    main(args)
     
 
 
