@@ -15,6 +15,7 @@ def hadamard(A,B):
 
 def sigmoid(x):
     exp_x = np.exp(-x)
+    np.clip(exp_x, 1e-7, 1 - 1e-7, out = exp_x)
     return 1/(1 + exp_x)
 
 def oneHotEncode(word, vocab_size):

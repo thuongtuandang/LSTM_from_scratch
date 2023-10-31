@@ -35,6 +35,12 @@ class LSTM(BaseModel):
         # css is the array for the gate c tilde
         self.css = []
 
+        self.inputs.append(np.zeros((self.Wf.shape[1],1)))
+        self.fs.append(np.zeros_like(self.bf))
+        self.iss.append(np.zeros_like(self.bi))
+        self.os.append(np.zeros_like(self.bo))
+        self.css.append(np.zeros_like(self.bc))
+
         h = np.zeros((self.Wf.shape[0], 1))
         self.hs.append(h)
         c = np.zeros((self.Wf.shape[0], 1))
@@ -68,7 +74,7 @@ class LSTM(BaseModel):
         return self.outputs
     
     def _backward(self, dy, learning_rate = 0.03):
-        n = len(self.inputs)
+        n = len(self.inputs)-1
         dby = dy
         dWy = dy @ self.hs[n].T
         # That is dL/dh[n]
@@ -89,40 +95,40 @@ class LSTM(BaseModel):
         dbo = np.zeros_like(self.bo)
         dbc = np.zeros_like(self.bc)
 
-        for t in reversed(range(n-1)):
-            tmpf = self.fs[t+1] * (1 - self.fs[t+1])
-            tmpi = self.iss[t+1] * (1 - self.iss[t+1])
-            tmpo = self.os[t+1] * (1 - self.os[t+1])
+        for t in range(n, 0, -1):
+            tmpf = self.fs[t] * (1 - self.fs[t])
+            tmpi = self.iss[t] * (1 - self.iss[t])
+            tmpo = self.os[t] * (1 - self.os[t])
 
-            tmpc = 1 - np.tanh(self.cs[t])**2
-            tmpc_tilde = 1 - np.tanh(self.css[t+1])**2
+            tmpc = 1 - np.tanh(self.cs[t-1])**2
+            tmpc_tilde = 1 - np.tanh(self.css[t])**2
 
-            dhtdct = self.os[t+1] @ tmpc.T
-            dhtdot = np.tanh(self.cs[t+1])
+            dhtdct = self.os[t] @ tmpc.T
+            dhtdot = np.tanh(self.cs[t])
 
             dotdht_1 = self.Uo @ tmpo
-            dotdUo = tmpo @ self.hs[t].T
-            dotdWo = tmpo @ self.inputs[t+1].T
+            dotdUo = tmpo @ self.hs[t-1].T
+            dotdWo = tmpo @ self.inputs[t].T
             dotdbo = np.sum(tmpo, axis=1, keepdims=True)
 
-            dctdct_1 = self.fs[t+1]
-            dctdft = self.cs[t]
-            dctdit = self.css[t+1]
-            dctdct_tilde = self.iss[t+1]
+            dctdct_1 = self.fs[t]
+            dctdft = self.cs[t-1]
+            dctdit = self.css[t]
+            dctdct_tilde = self.iss[t]
 
-            dftdUf = tmpf @ self.hs[t].T
+            dftdUf = tmpf @ self.hs[t-1].T
             dftdht_1 = self.Uf @ tmpf
-            dftdWf = tmpf @ self.inputs[t+1].T
+            dftdWf = tmpf @ self.inputs[t].T
             dftdbf = np.sum(tmpf, axis = 1, keepdims=True)
 
-            ditdUi = tmpi @ self.hs[t].T
+            ditdUi = tmpi @ self.hs[t-1].T
             ditdht_1 = self.Ui @ tmpi
-            ditdWi = tmpi @ self.inputs[t+1].T
+            ditdWi = tmpi @ self.inputs[t].T
             ditdbi = np.sum(tmpi, axis = 1, keepdims=True)
 
-            dc_tildedUc = tmpc_tilde @ self.hs[t].T
+            dc_tildedUc = tmpc_tilde @ self.hs[t-1].T
             dc_tildedht_1 = self.Uc @ tmpc_tilde
-            dc_tildedWc = tmpc_tilde @ self.inputs[t+1].T
+            dc_tildedWc = tmpc_tilde @ self.inputs[t].T
             dc_tildedbc = np.sum(tmpc_tilde, axis = 1, keepdims = True)
             
 
@@ -148,8 +154,7 @@ class LSTM(BaseModel):
 
             # Update dh and clip its values
             dh = temp
-            for d in [dh]:
-                np.clip(d, 1e-15, 1 - 1e-15, out = d)
+            np.clip(dh, 1e-7, 1 - 1e-7, out = dh)
         
 
         # Clip to prevent gradient vanishing/exploding
