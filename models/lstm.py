@@ -130,30 +130,26 @@ class LSTM(BaseModel):
             dc_tildedht_1 = self.Uc @ tmpc_tilde
             dc_tildedWc = tmpc_tilde @ self.inputs[t].T
             dc_tildedbc = np.sum(tmpc_tilde, axis = 1, keepdims = True)
-            
 
-            dhtdht_1 = dhtdct @ dctdct_tilde @ dc_tildedht_1.T + dhtdct @ dctdft @ dftdht_1.T + dhtdct @ dctdit @ ditdht_1.T + dhtdot @ dotdht_1.T
-            # temp is dL/dht
-            temp = dhtdht_1 @ dh
+            dUo += dh @ (dhtdot.T @ dotdUo)
+            dWo += dh @ (dhtdot.T @ dotdWo)
+            dbo += dh @ (dhtdot.T @ dotdbo)
 
-            dUo += temp @ (dhtdot.T @ dotdUo)
-            dWo += temp @ (dhtdot.T @ dotdWo)
-            dbo += temp @ (dhtdot.T @ dotdbo)
+            dUf += dh @ (dhtdct @ dctdft).T @ dftdUf
+            dWf += dh @ (dhtdct @ dctdft).T @ dftdWf
+            dbf += dh @ (dhtdct @ dctdft).T @ dftdbf
 
-            dUf += temp @ (dhtdct @ dctdft).T @ dftdUf
-            dWf += temp @ (dhtdct @ dctdft).T @ dftdWf
-            dbf += temp @ (dhtdct @ dctdft).T @ dftdbf
+            dUi += dh @ (dhtdct @ dctdit).T @ ditdUi
+            dWi += dh @ (dhtdct @ dctdit).T @ ditdWi
+            dbi += dh @ (dhtdct @ dctdit).T @ ditdbi
 
-            dUi += temp @ (dhtdct @ dctdit).T @ ditdUi
-            dWi += temp @ (dhtdct @ dctdit).T @ ditdWi
-            dbi += temp @ (dhtdct @ dctdit).T @ ditdbi
-
-            dUc += temp @ (dhtdct @ dctdct_tilde).T @ dc_tildedUc
-            dWc += temp @ (dhtdct @ dctdct_tilde).T @ dc_tildedWc
-            dbc += temp @ (dhtdct @ dctdct_tilde).T @ dc_tildedbc
+            dUc += dh @ (dhtdct @ dctdct_tilde).T @ dc_tildedUc
+            dWc += dh @ (dhtdct @ dctdct_tilde).T @ dc_tildedWc
+            dbc += dh @ (dhtdct @ dctdct_tilde).T @ dc_tildedbc
 
             # Update dh and clip its values
-            dh = temp
+            dhtdht_1 = dhtdct @ dctdct_tilde @ dc_tildedht_1.T + dhtdct @ dctdft @ dftdht_1.T + dhtdct @ dctdit @ ditdht_1.T + dhtdot @ dotdht_1.T
+            dh = dhtdht_1 @ dh
             np.clip(dh, 1e-7, 1 - 1e-7, out = dh)
         
 
