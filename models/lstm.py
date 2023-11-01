@@ -75,6 +75,7 @@ class LSTM(BaseModel):
     
     def _backward(self, dy, learning_rate = 0.03):
         n = len(self.inputs)-1
+        # These derivatives can be computed directly
         dby = dy
         dWy = dy @ self.hs[n].T
         # That is dL/dh[n]
@@ -100,7 +101,8 @@ class LSTM(BaseModel):
             tmpi = self.iss[t] * (1 - self.iss[t])
             tmpo = self.os[t] * (1 - self.os[t])
 
-            tmpc = 1 - np.tanh(self.cs[t-1])**2
+            # tmpc = 1 - np.tanh(self.cs[t-1])**2
+            tmpc = 1 - np.tanh(self.cs[t])**2
             tmpc_tilde = 1 - np.tanh(self.css[t])**2
 
             dhtdct = self.os[t] @ tmpc.T
@@ -203,6 +205,10 @@ class LSTM(BaseModel):
 
     def predict(self, X, y):
         return self._process(X, y, run_backward=False)
+    
+    def word_predict(self, inputs):
+        y_pred = self._forward(inputs)
+        return y_pred
 
     def score(self, x, y):
         pass

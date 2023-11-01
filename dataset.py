@@ -47,6 +47,13 @@ class Dataset:
         test_data = inputs[train_size:]
         self.x_train, self.y_train = self._processing(train_data)
         self.x_test, self.y_test = self._processing(test_data)
+    
+    def word_embedding(self, inputs):
+        v = []
+        for x in inputs.split():
+            index = self.word_dict.index(x)
+            v.append(oneHotEncode(index, self.vocab_size))
+        return v
 
     @property
     def vocab_size(self):

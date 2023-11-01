@@ -18,7 +18,7 @@ def sigmoid(x):
     exp_x = np.exp(-x_clip)
     return 1/(1 + exp_x)
 
-def oneHotEncode(word, vocab_size):
+def oneHotEncode(index, vocab_size):
     v = np.zeros(vocab_size, dtype=np.int8)
-    v[word] = np.int8(1)
+    v[index] = np.int8(1)
     return v

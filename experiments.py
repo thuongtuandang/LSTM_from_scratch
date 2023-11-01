@@ -1,6 +1,7 @@
 
 import argparse
 import importlib
+import pickle
 
 from dataset import Dataset
 from models.model import BaseModel
@@ -23,7 +24,8 @@ def main(args):
 
     output, acc = model.predict(dataset.x_test, dataset.y_test)
     print(f"Accuracy on test set: {acc}")
-
+    with open('model.pkl', mode='wb') as file:
+        pickle.dump(model, file)
 
 if __name__ == "__main__":
     
