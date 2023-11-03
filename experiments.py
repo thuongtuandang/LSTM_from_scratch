@@ -5,12 +5,12 @@ import pickle
 from dataset import Dataset
 from lstm import LSTM
 
-_DEFAULT_DATA_PATH = "data/robert_frost.txt"
+DATA_PATH = "data/test.txt"
 
 
 def main(args):
     dataset = Dataset(input_length=args.input_length, output_length=args.output_length)
-    dataset.load(args.data_path)
+    dataset.load(DATA_PATH)
 
     model = LSTM(input_size=dataset.vocab_size, output_size=dataset.vocab_size)
     model.fit(dataset.x_train, dataset.y_train, learning_rate=args.learning_rate)
@@ -24,14 +24,6 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(
         description="Experiment model"
-    )
-    parser.add_argument(
-        "-d",
-        "--data_path",
-        type=str,
-        required=False,
-        default=_DEFAULT_DATA_PATH,
-        help="Name of the local data text file",
     )
 
     parser.add_argument(

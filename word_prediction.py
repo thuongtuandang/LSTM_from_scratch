@@ -2,18 +2,25 @@ import pickle
 from dataset import Dataset
 import numpy as np
 import argparse
+from experiments import DATA_PATH
+
+from lstm import LSTM
 
 def main(args):
     with open('saved_model/model.pkl', mode='rb') as f:
-        model = pickle.load(f)
+        model: LSTM = pickle.load(f)
         text = args.text
         dataset = Dataset(input_length=args.input_length, output_length=args.output_length)
-        dataset.load(args.data_path)
-        v = dataset.word_embedding(text)
-        y_pred = model.word_predict(v)
-        index = np.argmax(y_pred)
-        word = dataset.word_dict[index]
-        print(f"Next word prediction: {word}")
+        dataset.load(DATA_PATH)
+        try:
+            v = dataset.word_embedding(text)
+            y_pred = model.word_predict(v)
+            index = np.argmax(y_pred)
+            word = dataset.word_dict[index]
+            print(f"Next word prediction: {word}")
+        except ValueError:
+            print(f"The text '{text}' has word that is not in dictionary of the data file ({DATA_PATH}). Please try another words.")
+        
 
 if __name__ == "__main__":
     
@@ -25,13 +32,6 @@ if __name__ == "__main__":
         "--text",
         type=str,
         required=True,
-    )
-    parser.add_argument(
-        "-d",
-        "--data_path",
-        type=str,
-        required=False,
-        default="notebooks/test.txt",
     )
 
     parser.add_argument(
