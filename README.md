@@ -1,9 +1,9 @@
 # LSTM FROM SCRATCH
 ## Goal of this project
-- Understand how to implement a LSTM model from scratch
-- Understand the flow of creating and using a model with special task
+- Implement an LSTM model from scratch.
+- Process text data and transform it into a form useful for our model for the prediction task.
 
-If you are interested in learning about the theory of LSTM, You can refer to the `documents/LSTM.pdf` file.
+If you are interested in the theoretical background of LSTM, you can read about it in our file `documents/LSTM.pdf`.
 ## Install python package
 ### Using `venv`:
 ```
@@ -16,26 +16,26 @@ pip install requirements.txt
 pipenv install
 ```
 ## Training
-You can train a LSTM model with default setting:
+You can train an LSTM model with default setting:
 - data: `data/test.txt`
-- learning rate: `0.3`
-- number of iterations: `100`
+- learning rate: `0.1`
+- number of iterations: `101`
 ```
 python experiments.py
 ```
-You can change to your custom data by coping your data file to `data` folder and update `DATA_PATH` variable in `experiments.py` file.
+You can switch to your own data by coping your data file to the `data` folder and update the `DATA_PATH` variable in the `experiments.py` file.
 ```
 DATA_PATH = "path/to/your/data/file"
 ```
-You also can change `learning rate` and `number of iterations` with:
+You also can change the `learning rate` and the `number of iterations` with this command:
 ```
-python experiments.py --learning_rate 0.3 --num_iter 100
+python experiments.py --learning_rate 0.1 --num_iter 101
 ```
 ## Prediction
-After training, the trained model will be save at `saved_model/model.pkl`, that will help us can run prediction at anytime by load this model file. You run the prediction by run the following command:
+After training, the trained model is saved at `saved_model/model.pkl` so that we can run the prediction without retraining by simply loading the model file. You can run the prediction by the following command:
 ```
 python word_prediction.py --text "old man"
 ```
 
-with `--text` param is the text you want to predict the next word
+with the `--text` param is the text you want to predict the next word.
 
