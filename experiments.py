@@ -13,7 +13,7 @@ def main(args):
     dataset.load(DATA_PATH)
 
     model = LSTM(input_size=dataset.vocab_size, output_size=dataset.vocab_size)
-    model.fit(dataset.x_train, dataset.y_train, learning_rate=args.learning_rate)
+    model.fit(dataset.x_train, dataset.y_train, max_iter=args.num_iter, learning_rate=args.learning_rate)
 
     output, acc = model.predict(dataset.x_test, dataset.y_test)
     print(f"Accuracy on test set: {acc}")
@@ -24,6 +24,14 @@ if __name__ == "__main__":
     
     parser = argparse.ArgumentParser(
         description="Experiment model"
+    )
+
+    parser.add_argument(
+        "-ni",
+        "--num_iter",
+        type=int,
+        required=False,
+        default=1,
     )
 
     parser.add_argument(
