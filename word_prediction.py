@@ -4,7 +4,7 @@ import numpy as np
 import argparse
 
 def main(args):
-    with open('model.pkl', mode='rb') as f:
+    with open('saved_model/model.pkl', mode='rb') as f:
         model = pickle.load(f)
         text = args.text
         dataset = Dataset(input_length=args.input_length, output_length=args.output_length)

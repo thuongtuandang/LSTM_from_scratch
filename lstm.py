@@ -1,10 +1,10 @@
 import numpy as np
-from dataset import Dataset
-from models.model import BaseModel
 from utils import hadamard, sigmoid, softmax
 
-class LSTM(BaseModel):
+class LSTM():
     def __init__(self, input_size, output_size, hidden_size = 64):
+        self.input_size = input_size
+        self.output_size = output_size
         # Initialize W
         self.Wf = np.random.rand(hidden_size, input_size)/1000
         self.Wi = np.random.rand(hidden_size, input_size)/1000
@@ -23,6 +23,25 @@ class LSTM(BaseModel):
         self.bc = np.zeros((hidden_size,1))
         self.bo = np.zeros((hidden_size,1))
     
+    def info(self):
+        print(f"Input size: {self.input_size}, output size: {self.output_size}")
+        print(f"Forget gate info:")
+        print(f"--- Wf shape: {self.Wf.shape}")
+        print(f"--- Uf shape: {self.Uf.shape}")
+        print(f"--- bf shape: {self.bf.shape}")
+        print(f"Input gate info:")
+        print(f"--- Wi shape: {self.Wi.shape}")
+        print(f"--- Ui shape: {self.Ui.shape}")
+        print(f"--- bi shape: {self.bi.shape}")
+        print(f"Output gate info:")
+        print(f"--- Wo shape: {self.Wo.shape}")
+        print(f"--- Uo shape: {self.Uo.shape}")
+        print(f"--- bo shape: {self.bo.shape}")
+        print(f"Intermediate gate info:")
+        print(f"--- Wc shape: {self.Wc.shape}")
+        print(f"--- Uc shape: {self.Uc.shape}")
+        print(f"--- bc shape: {self.bc.shape}")
+
     def _forward(self, inputs):
         self.inputs = []
         # Initialize arrays h and c
