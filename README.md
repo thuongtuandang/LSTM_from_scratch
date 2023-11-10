@@ -1,9 +1,17 @@
 # LSTM FROM SCRATCH
 ## Goal of this project
 - Implement an LSTM model from scratch.
+- Provide a complete documentation about LSTM mechanism, especially the gate architecture and their importance.
+- Explain carefully the backprop computation with codes.
 - Process text data and transform it into a form useful for our model for the prediction task.
 
-If you are interested in the theoretical background of LSTM, you can read about it in our file `documents/LSTM.pdf`.
+We highyly recommend you to look at our documentation `documents/LSTM.pdf`.
+
+Interesting points contained in the file:
+    - LSTM mechanism has memory cells and it also learns to forget.
+    - Hadamard product of matrices can be seen as a filter.
+    - The backprop computation for LSTM is much more complicated than RNN.
+
 ## Install python package
 ### Using `venv`:
 ```
